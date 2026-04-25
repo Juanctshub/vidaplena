@@ -61,12 +61,7 @@
             width: 0; height: 0;
             transform-style: preserve-3d;
             perspective: 600px;
-            animation: loader-rotate 10s linear infinite;
-        }
-
-        @keyframes loader-rotate {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
+            margin-bottom: 120px; /* Space for the triangles */
         }
 
         figure.origami-loader span {
@@ -112,8 +107,7 @@
         }
 
         .loader-info {
-            position: absolute;
-            bottom: 20%;
+            margin-top: 40px;
             text-align: center;
             z-index: 10;
         }
