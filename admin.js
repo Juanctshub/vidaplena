@@ -144,7 +144,7 @@
         if (!r) {
             // Default setup from old credentials
             const old = JSON.parse(localStorage.getItem('adminCredentials')) || { username: 'Admin', password: 'Vidaplena' };
-            r = [{ user: old.username, pass: old.password, role: 'Super Admin' }];
+            r = [{ user: old.username, pass: old.password, role: 'Pastor' }];
             localStorage.setItem('adminUsers', JSON.stringify(r));
         }
         return r;
@@ -993,8 +993,8 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     };
 
     window.cleanupDuplicates = function() {
-        if (currentRole !== 'Super Admin') {
-            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Solo Super Admin puede limpiar duplicados.'});
+        if (currentRole !== 'Pastor') {
+            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Solo el Pastor puede limpiar duplicados.'});
             return;
         }
 
@@ -1059,8 +1059,8 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     };
 
     window.deleteMember = function(id) {
-        if (currentRole !== 'Super Admin') {
-            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Solo Super Admin puede eliminar.'});
+        if (currentRole !== 'Pastor') {
+            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Solo el Pastor puede eliminar.'});
             return;
         }
         if (!id || id === 'missing_id') {
