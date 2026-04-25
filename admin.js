@@ -1922,9 +1922,7 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
 
     window.previewFile = function(url, name, gDriveId, isFolder) {
         if (isFolder) {
-            // If it's a folder, we could ideally navigate into it, 
-            // but for now we just open it in Drive.
-            window.open(url, '_blank');
+            window.openFolder(gDriveId);
             return;
         }
 
@@ -2068,8 +2066,8 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
                 <td class="py-4 px-4 text-slate-500 text-xs">${new Date(f.date).toLocaleDateString()}</td>
                 <td class="py-4 px-4 text-right">
                     <div class="flex justify-end gap-2">
-                        <button onclick="previewFile('${f.url}', '${f.name}', '${f.gDriveId || ''}', ${isFolder})" class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all opacity-0 group-hover:opacity-100" title="Vista Previa">
-                            <i data-lucide="${isFolder ? 'external-link' : 'eye'}" class="w-4 h-4"></i>
+                        <button onclick="${isFolder ? `openFolder('${f.gDriveId}')` : `previewFile('${f.url}', '${f.name}', '${f.gDriveId || ''}', false)`}" class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all opacity-0 group-hover:opacity-100" title="${isFolder ? 'Abrir Carpeta' : 'Vista Previa'}">
+                            <i data-lucide="${isFolder ? 'folder-open' : 'eye'}" class="w-4 h-4"></i>
                         </button>
                         <button onclick="deleteLibraryFile('${f.lid}', '${f.gDriveId || ''}')" class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100">
                             <i data-lucide="trash-2" class="w-4 h-4"></i>
