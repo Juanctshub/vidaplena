@@ -1737,6 +1737,12 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     };
 
     window.syncGoogleDrive = async function() {
+        const syncBtn = document.querySelector('button[onclick="syncGoogleDrive()"]');
+        const originalHTML = syncBtn.innerHTML;
+        syncBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sincronizando...';
+        lucide.createIcons();
+        syncBtn.disabled = true;
+
         Swal.fire({
             title: 'Sincronizando Drive...',
             html: 'Buscando carpetas y archivos recientes.',
@@ -1745,12 +1751,10 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         });
 
         try {
-            // Using a fetch GET to the script. The script MUST have a doGet function.
             const response = await fetch(GD_SCRIPT_URL + "?action=list");
             const files = await response.json();
+            console.log("Archivos de Drive recibidos:", files);
             
-            // We'll clear the 'sync' entries in Firestore or just handle them locally?
-            // Better: Display them as a special group in the UI.
             window.googleDriveFiles = files;
             renderLibrary();
             Swal.close();
@@ -1758,6 +1762,10 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         } catch (err) {
             console.error(err);
             Swal.fire('Atención', 'Para sincronizar archivos existentes, asegúrate de haber actualizado el Script de Google con la función "doGet" que te proporcionó Pedro.', 'warning');
+        } finally {
+            syncBtn.innerHTML = originalHTML;
+            syncBtn.disabled = false;
+            lucide.createIcons();
         }
     };
 
@@ -1935,7 +1943,15 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
             return;
         }
 
-        container.innerHTML = combined.sort((a,b) => new Date(b.date) - new Date(a.date)).map(f => {
+        container.innerHTML = combined.sort((a,b) => {
+            // Folders first
+            const aIsFolder = a.mime === 'application/vnd.google-apps.folder';
+            const bIsFolder = b.mime === 'application/vnd.google-apps.folder';
+            if (aIsFolder && !bIsFolder) return -1;
+            if (!aIsFolder && bIsFolder) return 1;
+            // Then by date
+            return new Date(b.date) - new Date(a.date);
+        }).map(f => {
             let icon = 'file-text';
             let iconColor = 'text-indigo-400';
             let sizeStr = f.size ? (f.size / 1024 / 1024).toFixed(2) + ' MB' : 'N/A';
@@ -1964,20 +1980,23 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
             }
             
             return `
-            <tr class="hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group">
+            <tr class="hover:bg-white/5 transition-all border-b border-white/5 last:border-0 group">
                 <td class="py-4 px-4 font-medium text-white">
                     <div class="flex items-center gap-3">
-                        <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center ${iconColor}">
-                            <i data-lucide="${icon}" class="w-4 h-4"></i>
+                        <div class="w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center ${iconColor} border border-white/5 shadow-inner">
+                            <i data-lucide="${icon}" class="w-5 h-5"></i>
                         </div>
                         <div class="truncate max-w-[200px] md:max-w-md">
-                            <a href="${f.url}" target="_blank" class="hover:text-indigo-400 transition-colors block truncate">${f.name}</a>
-                            <span class="text-[10px] text-slate-500 uppercase tracking-widest">${sizeStr}</span>
+                            <a href="${f.url}" target="_blank" class="font-bold text-slate-200 hover:text-indigo-400 transition-colors block truncate">${f.name}</a>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                ${isFolder ? '<span class="text-[9px] bg-yellow-500/20 text-yellow-500 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter">Carpeta</span>' : ''}
+                                <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">${sizeStr}</span>
+                            </div>
                         </div>
                     </div>
                 </td>
-                <td class="py-4 px-4 text-slate-400 text-sm">${f.uploader}</td>
-                <td class="py-4 px-4 text-slate-400 text-sm">${new Date(f.date).toLocaleDateString()}</td>
+                <td class="py-4 px-4 text-slate-400 text-xs font-medium">${f.uploader}</td>
+                <td class="py-4 px-4 text-slate-500 text-xs">${new Date(f.date).toLocaleDateString()}</td>
                 <td class="py-4 px-4 text-right">
                     <div class="flex justify-end gap-2">
                         <button onclick="previewFile('${f.url}', '${f.name}', '${f.gDriveId || ''}', ${isFolder})" class="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-500/10 text-blue-400 hover:bg-blue-500 hover:text-white transition-all opacity-0 group-hover:opacity-100" title="Vista Previa">
