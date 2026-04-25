@@ -1529,14 +1529,19 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
             didOpen: () => {
                 dbFirestore.collection('inscripciones_evento')
                     .where('eventId', '==', eid)
-                    .orderBy('fechaRegistro', 'desc')
                     .get().then(snap => {
                         const list = document.getElementById('registrationsList');
                         if (snap.empty) {
                             list.innerHTML = '<tr><td colspan="4" class="py-10 text-center text-slate-500">No hay inscritos aún.</td></tr>';
                             return;
                         }
-                        list.innerHTML = snap.docs.map(doc => {
+
+                        // Sort client-side to avoid Index requirement
+                        const sortedDocs = snap.docs.sort((a, b) => {
+                            return new Date(b.data().fechaRegistro) - new Date(a.data().fechaRegistro);
+                        });
+
+                        list.innerHTML = sortedDocs.map(doc => {
                             const d = doc.data();
                             return `
                                 <tr class="border-b border-white/5">
