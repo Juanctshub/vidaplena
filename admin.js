@@ -957,6 +957,45 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         }, 300);
     };
 
+    window.openQRModal = function(id, name) {
+        const modal = document.getElementById('qrModal');
+        const content = document.getElementById('qrModalContent');
+        const qrContainer = document.getElementById('qrcode');
+        
+        document.getElementById('qrMemberName').textContent = name;
+        document.getElementById('qrMemberIdDisplay').textContent = `ID: #${id.substring(0,8).toUpperCase()}`;
+        
+        qrContainer.innerHTML = '';
+        new QRCode(qrContainer, {
+            text: id,
+            width: 200,
+            height: 200,
+            colorDark: "#0B1120",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
+        });
+
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        setTimeout(() => {
+            modal.classList.remove('opacity-0');
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }, 10);
+    };
+
+    window.closeQRModal = function() {
+        const modal = document.getElementById('qrModal');
+        const content = document.getElementById('qrModalContent');
+        modal.classList.add('opacity-0');
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+        setTimeout(() => {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }, 300);
+    };
+
     function renderBitacora(notes) {
         const list = document.getElementById('bitacoraList');
         if (notes.length === 0) {

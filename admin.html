@@ -969,6 +969,43 @@
                 <button onclick="saveWhatsAppGroup()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg mt-4 shadow-lg">Guardar Grupo</button>
             </div>
         </div>
+    </div>
+
+    <!-- QR CREDENTIAL MODAL -->
+    <div id="qrModal" class="fixed inset-0 bg-[#0B1120]/95 backdrop-blur-md z-[110] hidden items-center justify-center p-4 transition-opacity duration-300 opacity-0">
+        <div id="qrModalContent" class="bg-white rounded-[2.5rem] w-full max-w-sm shadow-2xl overflow-hidden transform scale-95 transition-transform duration-300 relative text-slate-900">
+            <!-- Credential Header -->
+            <div class="bg-gradient-to-br from-blue-600 to-purple-700 p-8 text-white text-center relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl"></div>
+                <div class="relative z-10">
+                    <img src="https://vidalpleana.com/logo.png" onerror="this.src='https://ui-avatars.com/api/?name=Vida+Plena&background=fff&color=3b82f6'" class="w-16 h-16 mx-auto mb-3 rounded-xl shadow-lg bg-white p-2">
+                    <h3 class="text-xl font-black tracking-tighter uppercase">Credencial Digital</h3>
+                    <p class="text-blue-100 text-[10px] font-bold tracking-[0.2em] uppercase opacity-80">Miembro Activo • Vida Plena</p>
+                </div>
+            </div>
+            
+            <!-- QR & Name -->
+            <div class="p-10 text-center flex flex-col items-center">
+                <div id="qrcode" class="p-4 bg-white rounded-3xl shadow-2xl border-4 border-slate-50 mb-6 transition-transform hover:scale-105 duration-500"></div>
+                <h4 id="qrMemberName" class="text-2xl font-black text-slate-900 mb-1 leading-tight">Nombre del Miembro</h4>
+                <p id="qrMemberIdDisplay" class="text-slate-400 text-[10px] font-mono tracking-widest uppercase mb-8">ID: #--------</p>
+                
+                <div class="w-full grid grid-cols-2 gap-3 mb-8">
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-left">
+                        <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Sede</span>
+                        <span class="text-xs font-bold text-slate-700">Principal</span>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-left">
+                        <span class="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Estatus</span>
+                        <span class="text-xs font-bold text-emerald-600 flex items-center gap-1">● Activo</span>
+                    </div>
+                </div>
+
+                <button onclick="closeQRModal()" class="w-full bg-slate-900 text-white font-black py-4 rounded-2xl text-sm shadow-xl hover:bg-slate-800 transition-all active:scale-95">CERRAR CREDENCIAL</button>
+                <p class="mt-4 text-[9px] text-slate-400 font-bold px-6">Esta credencial es personal e intransferible. Válida para el acceso a eventos y servicios de Iglesia Vida Plena.</p>
+            </div>
+        </div>
+    </div>
     <!-- Bottom Navigation (Mobile Only) -->
     <nav class="mobile-nav">
         <a class="mobile-nav-item active" data-section="dashboard">
@@ -994,6 +1031,7 @@
     </nav>
 
     <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>
