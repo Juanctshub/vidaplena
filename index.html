@@ -262,7 +262,7 @@
             let roles = JSON.parse(localStorage.getItem('adminUsers'));
             if (!roles) {
                 const old = JSON.parse(localStorage.getItem('adminCredentials')) || { username: 'Admin', password: 'Vidaplena' };
-                roles = [{ user: old.username, pass: old.password, role: 'Super Admin' }];
+                roles = [{ user: old.username, pass: old.password, role: 'Pastor' }];
                 localStorage.setItem('adminUsers', JSON.stringify(roles));
             }
             

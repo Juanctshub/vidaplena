@@ -37,7 +37,7 @@
     // Role setup
     let currentRole = session.role || 'Pastor';
     // If they were Super Admin before, normalize to Pastor
-    if (currentRole === 'Super Admin') currentRole = 'Pastor';
+    if (currentRole === 'Super Admin' || currentRole === 'Administrador') currentRole = 'Pastor';
     const roleDisplay = document.getElementById('roleDisplay');
     if (roleDisplay) roleDisplay.textContent = currentRole;
     updateLoader(30, `Cargando perfil de ${currentRole}...`);
@@ -48,15 +48,21 @@
             const navAlerts = document.getElementById('navAlerts');
             const dashAlerts = document.getElementById('dashAlertsBox');
             const navSettings = document.getElementById('navSettings');
+            const navBroadcast = document.querySelector('[data-section="broadcast"]');
 
-            if (role === 'Secretaria') {
-                if(navAlerts) navAlerts.style.display = 'none';
-                if(dashAlerts) dashAlerts.style.display = 'none';
-            }
-            if (role === 'Lider') {
+            // Reset visibility
+            if(navAlerts) navAlerts.style.display = 'flex';
+            if(navSettings) navSettings.style.display = 'flex';
+            if(dashAlerts) dashAlerts.style.display = 'flex';
+
+            if (role === 'Lideres' || role === 'Lider') {
                 if(navAlerts) navAlerts.style.display = 'none';
                 if(navSettings) navSettings.style.display = 'none';
                 if(dashAlerts) dashAlerts.style.display = 'none';
+                if(navBroadcast) navBroadcast.style.display = 'none';
+            }
+            if (role === 'Moderadores' || role === 'Moderador') {
+                if(navSettings) navSettings.style.display = 'none';
             }
         } catch(e) { console.warn("UI Restrict Error:", e); }
     }
@@ -1105,7 +1111,7 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     window.deleteMember = function(id) {
         // Robust role check
         const userRole = currentRole || 'Visitante';
-        const canDelete = (userRole === 'Pastor' || userRole === 'Super Admin' || userRole === 'Administrador');
+        const canDelete = (userRole === 'Pastor' || userRole === 'Admin');
 
         if (!canDelete) {
             Swal.fire({ 
@@ -1229,7 +1235,7 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
 
     window.toggleRoleScope = function(role) {
         const container = document.getElementById('scopeContainer');
-        if (role === 'Lider') container.classList.remove('hidden');
+        if (role === 'Lideres' || role === 'Lider') container.classList.remove('hidden');
         else container.classList.add('hidden');
     };
 
@@ -1238,7 +1244,7 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         const u = document.getElementById('roleUser').value.trim();
         const p = document.getElementById('rolePass').value.trim();
         const rt = document.getElementById('roleType').value;
-        const rs = rt === 'Lider' ? document.getElementById('roleScope').value : 'Todos';
+        const rs = (rt === 'Lideres' || rt === 'Lider') ? document.getElementById('roleScope').value : 'Todos';
 
         if (!u || !p) return;
 
