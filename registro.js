@@ -191,6 +191,60 @@ document.querySelector('input[name="condicion"][value="No"]')?.addEventListener(
     if (this.checked) document.getElementById('condicionDetalleWrap').style.display = 'none';
 });
 
+// ===== PERSISTENCE (SAVE ON REFRESH) =====
+function saveDraft() {
+    const data = {};
+    const inputs = document.querySelectorAll('input:not([type="file"]), select, textarea');
+    inputs.forEach(el => {
+        if (el.type === 'radio' || el.type === 'checkbox') {
+            if (el.checked) data[el.name] = (data[el.name] || []).concat(el.value);
+        } else {
+            data[el.id] = el.value;
+        }
+    });
+    data.currentStep = currentStep;
+    localStorage.setItem('census_draft', JSON.stringify(data));
+}
+
+function loadDraft() {
+    const raw = localStorage.getItem('census_draft');
+    if (!raw) return;
+    try {
+        const data = JSON.parse(raw);
+        Object.keys(data).forEach(key => {
+            const el = document.getElementById(key);
+            if (el) {
+                el.value = data[key];
+                // Trigger change for age calc etc
+                el.dispatchEvent(new Event('change'));
+            } else {
+                // Radios or checkboxes
+                const radios = document.querySelectorAll(`input[name="${key}"]`);
+                radios.forEach(r => {
+                    if (Array.isArray(data[key])) {
+                        if (data[key].includes(r.value)) r.checked = true;
+                    } else {
+                        if (r.value === data[key]) r.checked = true;
+                    }
+                    r.dispatchEvent(new Event('change'));
+                });
+            }
+        });
+        if (data.currentStep) {
+            currentStep = data.currentStep;
+            showStep(currentStep);
+        }
+    } catch(e) { console.error("Error loading draft", e); }
+}
+
+// Auto-save on every input
+document.addEventListener('input', (e) => {
+    if (e.target.closest('#censoForm')) saveDraft();
+});
+document.addEventListener('change', (e) => {
+    if (e.target.closest('#censoForm')) saveDraft();
+});
+
 // ===== SUBMIT =====
 function submitForm() {
     const val = id => (document.getElementById(id)?.value || '').trim();
@@ -219,7 +273,7 @@ function submitForm() {
     const depressionCount = document.querySelectorAll('[data-cat="depression"]:checked').length;
     const spiritualCount = document.querySelectorAll('[data-cat="spiritual"]:checked').length;
 
-    // Temperament algorithm: count S/C/M/F from behavioral questions
+    // Temperament algorithm
     const tScores = { S: 0, C: 0, M: 0, F: 0 };
     ['tq1', 'tq2', 'tq3', 'tq4'].forEach(name => {
         const sel = document.querySelector('input[name="'+name+'"]:checked');
@@ -273,41 +327,58 @@ function submitForm() {
         fechaRegistro: new Date().toISOString()
     };
 
+    // Show loading
+    Swal.fire({
+        title: 'Guardando registro...',
+        text: 'Por favor no cierres esta ventana',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
     // Save to Firebase
     dbFirestore.collection('miembros').doc(member.id).set(member).then(() => {
-        // Save local backup just in case
+        // Clear draft
+        localStorage.removeItem('census_draft');
+
+        // Save local backup
         const db = JSON.parse(localStorage.getItem('censoVidaPlenaDB')) || [];
         db.push(member);
         localStorage.setItem('censoVidaPlenaDB', JSON.stringify(db));
 
-        // Add notification
+        // Add notification for admin
         const notifs = JSON.parse(localStorage.getItem('vidaPlenaNotifs')) || [];
         notifs.push({
             title: 'Nuevo registro',
             message: member.nombreCompleto + ' completó el censo.',
             createdAt: new Date().toISOString(),
-            important: member.psychData.anxietyAlert || member.psychData.depressionAlert || member.psychData.tocAlert,
+            important: member.psychData.anxietyAlert || member.psychData.depressionAlert || member.psychData.spiritualAlert,
             read: false
         });
         localStorage.setItem('vidaPlenaNotifs', JSON.stringify(notifs));
 
-        // Show done with Lottie
+        Swal.close();
+        
+        // Show success screen
         currentStep = TOTAL_STEPS + 1;
         showStep(currentStep);
 
         if (typeof lottie !== 'undefined') {
             lottie.loadAnimation({
                 container: document.getElementById('lottieSuccess'),
-                renderer: 'svg',
-                loop: false,
-                autoplay: true,
+                renderer: 'svg', loop: false, autoplay: true,
                 path: 'https://assets2.lottiefiles.com/packages/lf20_jbrw3hcz.json'
             });
         }
         Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: '¡Registro guardado exitosamente!', showConfirmButton: false, timer: 3000, timerProgressBar: true });
     }).catch(error => {
         console.error("Firebase error: ", error);
-        Swal.fire({ icon: 'error', title: 'Error de conexión', text: 'No se pudo guardar. Intenta de nuevo.', confirmButtonColor: '#0071e3' });
+        Swal.fire({ 
+            icon: 'error', 
+            title: 'Error de guardado', 
+            text: 'Hubo un problema al conectar con el servidor. Verifica tu internet e intenta de nuevo.', 
+            footer: 'Error técnico: ' + (error.code || error.message),
+            confirmButtonColor: '#3b82f6' 
+        });
     });
 }
 
@@ -317,5 +388,9 @@ style.textContent = '@keyframes shake{0%,100%{transform:translateX(0)}25%{transf
 document.head.appendChild(style);
 
 // ===== INIT =====
-showStep(1);
+window.addEventListener('load', () => {
+    loadDraft();
+    if (!localStorage.getItem('census_draft')) showStep(1);
+});
+
 })();
