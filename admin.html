@@ -48,33 +48,80 @@
     <style>
         body { background-color: #0B1120; color: #f8fafc; margin: 0; overflow-x: hidden; }
 
-        /* Premium Modern Loader */
+        /* Ultra-Premium Mesh Loader */
         #apple-loader {
-            position: fixed; inset: 0; background: #0B1120; z-index: 9999;
+            position: fixed; inset: 0; z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+            background: #0B1120;
+            overflow: hidden;
+            transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), visibility 1s;
         }
-        .loader-content { text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; }
-        .loader-main { position: relative; width: 120px; height: 120px; margin-bottom: 40px; }
-        .loader-ring {
-            position: absolute; inset: -10px; border: 2px solid rgba(59, 130, 246, 0.1);
-            border-top-color: #3b82f6; border-radius: 50%; animation: spin 2s linear infinite;
+
+        .mesh-gradient {
+            position: absolute; inset: 0;
+            background: 
+                radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(37, 99, 235, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(124, 58, 237, 0.1) 0px, transparent 50%);
+            filter: blur(100px);
+            animation: mesh-float 20s ease-in-out infinite alternate;
         }
-        .loader-logo {
-            width: 100%; height: 100%; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 32px; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3); animation: breathe 3s ease-in-out infinite;
+
+        @keyframes mesh-float {
+            0% { transform: scale(1) rotate(0deg); }
+            100% { transform: scale(1.2) rotate(10deg); }
         }
-        .loader-logo i { color: white; width: 50px; height: 50px; }
-        .loader-status { margin-top: 20px; }
-        .loader-title { font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 8px; letter-spacing: -0.025em; }
-        .loader-subtitle { font-size: 0.875rem; color: #94a3b8; font-weight: 500; min-height: 1.25rem; }
-        .loader-progress-bg { width: 240px; height: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 2px; margin-top: 24px; overflow: hidden; }
-        .loader-progress-bar { width: 0%; height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); transition: width 0.4s ease; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3); }
-            50% { transform: scale(1.05); box-shadow: 0 30px 60px rgba(59, 130, 246, 0.5); }
+
+        .loader-glass {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 3rem;
+            border-radius: 3rem;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            z-index: 10;
+            width: 320px;
+        }
+
+        .loader-logo-wrapper {
+            position: relative; width: 80px; height: 80px; margin-bottom: 2rem;
+        }
+
+        .loader-logo-img {
+            width: 100%; height: 100%; object-fit: contain;
+            filter: drop-shadow(0 0 20px rgba(59, 130, 246, 0.5));
+            animation: logo-float 3s ease-in-out infinite;
+        }
+
+        @keyframes logo-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loader-title {
+            font-size: 1.75rem; font-weight: 900; color: white;
+            letter-spacing: -0.05em; margin-bottom: 0.5rem;
+            background: linear-gradient(to bottom, #fff, #94a3b8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .loader-subtitle {
+            font-size: 0.75rem; color: #64748b; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.1em;
+        }
+
+        .loader-progress-container {
+            width: 100%; height: 2px; background: rgba(255, 255, 255, 0.05);
+            margin-top: 2.5rem; border-radius: 1px; overflow: hidden;
+        }
+
+        .loader-progress-bar {
+            width: 0%; height: 100%;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+            transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1);
         }
 
         /* Vida Plena Tabler Fusion Aesthetic */
@@ -174,20 +221,18 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <!-- Premium Modern Loader -->
+    <!-- Ultra-Premium Mesh Loader -->
     <div id="apple-loader">
-        <div class="loader-content">
-            <div class="loader-main">
-                <div class="loader-ring"></div>
-                <div class="loader-logo">
-                    <i data-lucide="shield-check" class="w-12 h-12 text-white"></i>
-                </div>
+        <div class="mesh-gradient"></div>
+        <div class="loader-glass">
+            <div class="loader-logo-wrapper">
+                <img src="logo.png" class="loader-logo-img">
             </div>
             <div class="loader-status">
                 <h1 class="loader-title">Vida Plena</h1>
-                <p class="loader-subtitle" id="loader-text">Inicializando ecosistema pastoral...</p>
+                <p class="loader-subtitle" id="loader-text">Sincronizando...</p>
             </div>
-            <div class="loader-progress-bg">
+            <div class="loader-progress-container">
                 <div class="loader-progress-bar" id="loader-bar"></div>
             </div>
         </div>
