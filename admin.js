@@ -825,13 +825,14 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
                     </td>
                     <td class="py-3 px-4 text-right">
                         <button onclick="viewMember('${id_str}')" class="p-2 bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 rounded-lg transition-colors tooltip" data-tippy-content="Ver Ficha"><i data-lucide="eye" class="w-4 h-4"></i></button>
-                        <button onclick="deleteMember('${id_str}')" class="p-2 bg-red-500/10 text-red-400 hover:text-white hover:bg-red-500 rounded-lg transition-colors ml-1 tooltip" data-tippy-content="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <button onclick="deleteMember('${id_str}')" class="btn-delete-member p-2 bg-red-500/10 text-red-400 hover:text-white hover:bg-red-500 rounded-lg transition-colors ml-1 tooltip" data-tippy-content="Eliminar"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </td>
                 </tr>
                 `;
             }).join('');
             lucide.createIcons();
             if(typeof tippy !== 'undefined') tippy('.tooltip');
+            applyRoleSecurityUI();
         }
     }
 
@@ -1923,7 +1924,8 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
                     date: gdf.date,
                     uploader: 'Sincronizado (Drive)',
                     isGoogleDrive: true,
-                    gDriveId: gdf.id
+                    gDriveId: gdf.id,
+                    mime: gdf.mime
                 });
             }
         });
@@ -1990,15 +1992,17 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
             `;
         }).join('');
         lucide.createIcons();
+        applyRoleSecurityUI();
     }
 
     function applyRoleSecurityUI() {
         const role = currentRole;
+        
         // 1. Bitácora Visibility (Only Pastor)
         const bitacora = document.getElementById('bitacoraSection');
         if (bitacora) {
-            if (role === 'Pastor') bitacora.classList.remove('hidden');
-            else bitacora.classList.add('hidden');
+            if (role === 'Pastor') bitacora.style.display = 'flex';
+            else bitacora.style.display = 'none';
         }
 
         // 2. Settings Access (Only Pastor and Admin)
@@ -2008,19 +2012,26 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
             else nav.classList.add('hidden');
         });
         
-        // Mobile Settings specifically
+        // 3. Sensitive Buttons (Delete, Purge, Cleanup)
+        const sensitiveButtons = document.querySelectorAll('.btn-delete-member, .btn-purge, .btn-cleanup');
+        sensitiveButtons.forEach(btn => {
+            if (role === 'Pastor' || role === 'Admin') btn.classList.remove('hidden');
+            else btn.classList.add('hidden');
+        });
+
+        // 4. Library Management (Only Pastor and Admin)
+        const libMgmt = document.querySelectorAll('.lib-mgmt-btn');
+        libMgmt.forEach(btn => {
+            if (role === 'Pastor' || role === 'Admin') btn.classList.remove('hidden');
+            else btn.classList.add('hidden');
+        });
+
+        // Ensure mobile nav is also protected
         const mobileSettings = document.getElementById('mobileNavSettings');
         if (mobileSettings) {
             if (role === 'Pastor' || role === 'Admin') mobileSettings.style.display = 'flex';
             else mobileSettings.style.display = 'none';
         }
-
-        // 3. Delete Member Buttons (Only Pastor and Admin)
-        const deleteButtons = document.querySelectorAll('.btn-delete-member');
-        deleteButtons.forEach(btn => {
-            if (role === 'Pastor' || role === 'Admin') btn.classList.remove('hidden');
-            else btn.classList.add('hidden');
-        });
     }
 
     // Run Initial Renders

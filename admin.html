@@ -362,10 +362,10 @@
                     <button onclick="exportToCSV()" class="flex-1 sm:flex-none justify-center bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20">
                         <i data-lucide="download" class="w-4 h-4"></i> Exportar a CSV
                     </button>
-                    <button onclick="cleanupDuplicates()" class="flex-1 sm:flex-none justify-center bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                    <button onclick="cleanupDuplicates()" class="btn-cleanup flex-1 sm:flex-none justify-center bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold transition-colors flex items-center gap-2 shadow-lg shadow-blue-500/20">
                         <i data-lucide="sparkles" class="w-4 h-4"></i> Limpiar Duplicados
                     </button>
-                    <button onclick="deleteAllMembers()" class="flex-1 sm:flex-none justify-center bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-bold transition-colors shadow-lg shadow-red-500/10">Eliminar Todos</button>
+                    <button onclick="deleteAllMembers()" class="btn-purge flex-1 sm:flex-none justify-center bg-red-500/10 text-red-400 hover:bg-red-500 hover:text-white px-4 py-2 rounded-lg font-bold transition-colors shadow-lg shadow-red-500/10">Eliminar Todos</button>
                 </div>
             </div>
             <div class="tabler-card">
@@ -717,13 +717,13 @@
                         <button onclick="syncGoogleDrive()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-colors">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i> Sincronizar
                         </button>
-                        <button onclick="promptCreateFolder()" class="bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-colors">
+                        <button onclick="promptCreateFolder()" class="lib-mgmt-btn bg-amber-600 hover:bg-amber-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-colors">
                             <i data-lucide="folder-plus" class="w-4 h-4"></i> Carpeta
                         </button>
-                        <button onclick="promptAddLink()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg font-bold border border-slate-700 flex items-center gap-2 transition-colors">
+                        <button onclick="promptAddLink()" class="lib-mgmt-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg font-bold border border-slate-700 flex items-center gap-2 transition-colors">
                             <i data-lucide="link" class="w-4 h-4"></i> Link
                         </button>
-                        <label class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg cursor-pointer flex items-center gap-2">
+                        <label class="lib-mgmt-btn bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold shadow-lg cursor-pointer flex items-center gap-2">
                             <i data-lucide="upload" class="w-4 h-4"></i> Subir Archivo
                             <input type="file" id="libUpload" class="hidden" onchange="uploadLibraryFile(this)">
                         </label>
