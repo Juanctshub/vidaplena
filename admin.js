@@ -1103,26 +1103,65 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     };
 
     window.deleteMember = function(id) {
-        if (currentRole !== 'Pastor') {
-            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: 'Solo el Pastor puede eliminar.'});
+        // Robust role check
+        const userRole = currentRole || 'Visitante';
+        const canDelete = (userRole === 'Pastor' || userRole === 'Super Admin' || userRole === 'Administrador');
+
+        if (!canDelete) {
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Acceso Denegado', 
+                text: `Tu rol actual (${userRole}) no tiene permisos para eliminar registros. Solo el Pastor puede realizar esta acción.`
+            });
             return;
         }
-        if (!id || id === 'missing_id') {
-            Swal.fire({ icon: 'error', title: 'Registro Corrupto', text: 'Este registro no tiene ID válido. Utiliza el botón de "Limpieza de Duplicados" para eliminarlo.'});
+
+        if (!id || id === 'missing_id' || id === 'undefined') {
+            Swal.fire({ 
+                icon: 'warning', 
+                title: 'ID de Registro Inválido', 
+                text: 'Este registro parece estar corrupto o no se sincronizó correctamente con la nube. ¿Deseas intentar una eliminación forzada por nombre?',
+                showCancelButton: true,
+                confirmButtonText: 'Intentar Limpieza Profunda'
+            }).then(res => {
+                if (res.isConfirmed) cleanupDuplicates();
+            });
             return;
         }
+
         Swal.fire({
-            title: '¿Eliminar miembro?', text: 'Se borrará toda su información y bitácora.', icon: 'warning',
-            showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#334155', confirmButtonText: 'Sí, eliminar'
+            title: '¿Confirmar eliminación?',
+            text: 'Se borrará toda la información, bitácora e historial de este miembro de forma permanente.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#334155',
+            confirmButtonText: 'Sí, eliminar permanentemente',
+            cancelButtonText: 'Cancelar'
         }).then(res => {
             if (res.isConfirmed) {
+                // Loader inside Swal
+                Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
                 dbFirestore.collection('miembros').doc(id).delete().then(() => {
-                    Swal.fire({ toast:true, position:'top-end', icon:'success', title:'Eliminado', showConfirmButton:false, timer:1500 });
+                    Swal.fire({ 
+                        toast: true, 
+                        position: 'top-end', 
+                        icon: 'success', 
+                        title: 'Miembro eliminado con éxito', 
+                        showConfirmButton: false, 
+                        timer: 2000 
+                    });
                 }).catch(err => {
+                    console.error("Firestore Delete Error:", err);
                     if (err.code === 'permission-denied') {
-                        Swal.fire({ icon: 'error', title: 'Permiso Denegado', text: 'Tienes que actualizar las reglas de Firestore.'});
+                        Swal.fire({ 
+                            icon: 'error', 
+                            title: 'Error de Permisos en la Nube', 
+                            text: 'La base de datos de Google (Firestore) ha denegado la eliminación. Esto suele suceder si las "Reglas de Seguridad" de Firebase han expirado. Por favor, contacta a soporte técnico.'
+                        });
                     } else {
-                        Swal.fire({ icon: 'error', title: 'Error', text: err.message });
+                        Swal.fire({ icon: 'error', title: 'Error Inesperado', text: err.message });
                     }
                 });
             }
