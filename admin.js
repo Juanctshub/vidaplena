@@ -129,7 +129,7 @@
         
         // Filter DB based on scope if role is Lider
         window.filteredDB = [...window.localDB];
-        if (currentRole === 'Lider' && session.scope && session.scope !== 'Todos') {
+        if ((currentRole === 'Lideres' || currentRole === 'Lider') && session.scope && session.scope !== 'Todos') {
             window.filteredDB = window.localDB.filter(m => 
                 (m.areaServicio && m.areaServicio.includes(session.scope)) || 
                 (m.grupoVida === session.scope)
@@ -152,12 +152,17 @@
     function getRoles() { 
         let r = JSON.parse(localStorage.getItem('adminUsers')); 
         if (!r) {
-            // Default setup from old credentials
             const old = JSON.parse(localStorage.getItem('adminCredentials')) || { username: 'Admin', password: 'Vidaplena' };
             r = [{ user: old.username, pass: old.password, role: 'Pastor' }];
             localStorage.setItem('adminUsers', JSON.stringify(r));
         }
-        return r;
+        // Migration: Ensure no 'Super Admin' remains in the roles list
+        return r.map(user => {
+            if (user.role === 'Super Admin' || user.role === 'Administrador') user.role = 'Pastor';
+            if (user.role === 'Moderador') user.role = 'Moderadores';
+            if (user.role === 'Lider') user.role = 'Lideres';
+            return user;
+        });
     }
     function saveRoles(r) { localStorage.setItem('adminUsers', JSON.stringify(r)); }
 
@@ -1109,8 +1114,11 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     };
 
     window.deleteMember = function(id) {
-        // Robust role check
-        const userRole = currentRole || 'Visitante';
+        // Force refresh currentRole from session just in case
+        const currentSession = JSON.parse(localStorage.getItem('adminSession'));
+        let userRole = currentSession.role || 'Visitante';
+        if (userRole === 'Super Admin' || userRole === 'Administrador') userRole = 'Pastor';
+
         const canDelete = (userRole === 'Pastor' || userRole === 'Admin');
 
         if (!canDelete) {
