@@ -1114,7 +1114,8 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     };
 
     window.deleteMember = function(id) {
-        // Force refresh currentRole from session just in case
+        console.log("Intentando eliminar ID:", id);
+        
         const currentSession = JSON.parse(localStorage.getItem('adminSession'));
         let userRole = currentSession.role || 'Visitante';
         if (userRole === 'Super Admin' || userRole === 'Administrador') userRole = 'Pastor';
@@ -1122,61 +1123,55 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         const canDelete = (userRole === 'Pastor' || userRole === 'Admin');
 
         if (!canDelete) {
-            Swal.fire({ 
-                icon: 'error', 
-                title: 'Acceso Denegado', 
-                text: `Tu rol actual (${userRole}) no tiene permisos para eliminar registros. Solo el Pastor puede realizar esta acción.`
-            });
+            Swal.fire({ icon: 'error', title: 'Acceso Denegado', text: `Tu rol (${userRole}) no permite borrar.` });
             return;
         }
 
         if (!id || id === 'missing_id' || id === 'undefined') {
             Swal.fire({ 
                 icon: 'warning', 
-                title: 'ID de Registro Inválido', 
-                text: 'Este registro parece estar corrupto o no se sincronizó correctamente con la nube. ¿Deseas intentar una eliminación forzada por nombre?',
+                title: 'ID Inválido', 
+                text: 'Este registro no tiene un identificador único en la nube.',
                 showCancelButton: true,
-                confirmButtonText: 'Intentar Limpieza Profunda'
-            }).then(res => {
-                if (res.isConfirmed) cleanupDuplicates();
-            });
+                confirmButtonText: 'Limpiar Duplicados'
+            }).then(res => { if (res.isConfirmed) cleanupDuplicates(); });
             return;
         }
 
+        // Buscar nombre para el mensaje
+        const member = window.localDB.find(m => m.id === id);
+        const memberName = member ? member.nombreCompleto : 'este registro';
+
         Swal.fire({
-            title: '¿Confirmar eliminación?',
-            text: 'Se borrará toda la información, bitácora e historial de este miembro de forma permanente.',
+            title: `¿Eliminar a ${memberName}?`,
+            text: `ID: ${id}. Esta acción es irreversible y borrará todo el historial.`,
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#ef4444',
-            cancelButtonColor: '#334155',
-            confirmButtonText: 'Sí, eliminar permanentemente',
+            confirmButtonText: 'Sí, borrar de la nube',
             cancelButtonText: 'Cancelar'
         }).then(res => {
             if (res.isConfirmed) {
-                // Loader inside Swal
-                Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                Swal.fire({ title: 'Eliminando de Firebase...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
 
+                // Intento de eliminación directa
                 dbFirestore.collection('miembros').doc(id).delete().then(() => {
+                    console.log("Eliminado con éxito de Firestore");
                     Swal.fire({ 
-                        toast: true, 
-                        position: 'top-end', 
-                        icon: 'success', 
-                        title: 'Miembro eliminado con éxito', 
-                        showConfirmButton: false, 
-                        timer: 2000 
+                        toast: true, position: 'top-end', icon: 'success', 
+                        title: 'Eliminado correctamente', showConfirmButton: false, timer: 2000 
                     });
+                    // Forzar limpieza local si el snapshot tarda
+                    window.localDB = window.localDB.filter(m => m.id !== id);
+                    renderMembers();
                 }).catch(err => {
-                    console.error("Firestore Delete Error:", err);
-                    if (err.code === 'permission-denied') {
-                        Swal.fire({ 
-                            icon: 'error', 
-                            title: 'Error de Permisos en la Nube', 
-                            text: 'La base de datos de Google (Firestore) ha denegado la eliminación. Esto suele suceder si las "Reglas de Seguridad" de Firebase han expirado. Por favor, contacta a soporte técnico.'
-                        });
-                    } else {
-                        Swal.fire({ icon: 'error', title: 'Error Inesperado', text: err.message });
-                    }
+                    console.error("Error crítico al eliminar:", err);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Firebase',
+                        text: `Código: ${err.code}. Mensaje: ${err.message}. Asegúrate de que el ID existe en la colección 'miembros'.`,
+                        footer: 'Si el error persiste, puede ser un problema de Reglas de Seguridad en Firebase.'
+                    });
                 });
             }
         });
