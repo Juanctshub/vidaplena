@@ -21,8 +21,8 @@
         }
     }
 
-    // Auto-reveal after the SVG animation finishes (approx 3s)
-    setTimeout(revealDashboard, 3000);
+    // Auto-reveal after the animation finishes (faster reveal for better UX)
+    setTimeout(revealDashboard, 1500);
 
     // ===== AUTH & ROLES CHECK =====
     const session = JSON.parse(localStorage.getItem('adminSession'));
@@ -33,6 +33,7 @@
 
     // Role setup
     let currentRole = session.role || 'Pastor';
+    // If they were Super Admin before, normalize to Pastor
     if (currentRole === 'Super Admin') currentRole = 'Pastor';
     const roleDisplay = document.getElementById('roleDisplay');
     if (roleDisplay) roleDisplay.textContent = currentRole;
@@ -1827,8 +1828,40 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         }
     };
 
+    window.promptCreateFolder = async function() {
+        const { value: folderName } = await Swal.fire({
+            title: 'Crear Carpeta en Drive',
+            background: '#0B1120',
+            color: '#fff',
+            input: 'text',
+            inputLabel: 'Nombre de la carpeta',
+            inputPlaceholder: 'Ej: Bosquejos 2024',
+            showCancelButton: true,
+            confirmButtonText: 'Crear',
+            inputValidator: (value) => { if (!value) return '¡Necesitas un nombre!'; }
+        });
+
+        if (folderName) {
+            Swal.fire({ title: 'Creando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            
+            fetch(GD_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: JSON.stringify({ action: 'createFolder', name: folderName, parentId: GD_FOLDER_ID })
+            }).then(() => {
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Carpeta creada', showConfirmButton: false, timer: 2000 });
+                syncGoogleDrive();
+            }).catch(err => {
+                console.error(err);
+                Swal.fire('Error', 'No se pudo crear la carpeta.', 'error');
+            });
+        }
+    };
+
     window.previewFile = function(url, name, gDriveId, isFolder) {
         if (isFolder) {
+            // If it's a folder, we could ideally navigate into it, 
+            // but for now we just open it in Drive.
             window.open(url, '_blank');
             return;
         }
@@ -1839,10 +1872,15 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         
         title.textContent = name;
         
-        // If it's a Google Drive file ID, use the preview URL
+        // Comprehensive Preview Logic
         if (gDriveId) {
+            // Google Drive Universal Preview
             frame.src = `https://drive.google.com/file/d/${gDriveId}/preview`;
+        } else if (url.includes('firebasestorage')) {
+            // Direct Firebase files
+            frame.src = url;
         } else {
+            // External Links / Others
             frame.src = url;
         }
 
