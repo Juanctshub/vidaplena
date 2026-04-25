@@ -1858,11 +1858,14 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
                 mode: 'no-cors',
                 body: JSON.stringify({ action: 'createFolder', name: folderName, parentId: GD_FOLDER_ID })
             }).then(() => {
-                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Carpeta creada', showConfirmButton: false, timer: 2000 });
-                syncGoogleDrive();
+                Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Carpeta enviada a Drive', showConfirmButton: false, timer: 2000 });
+                // Wait 2 seconds before syncing to give Drive time to reflect the new folder
+                setTimeout(() => {
+                    syncGoogleDrive();
+                }, 2000);
             }).catch(err => {
-                console.error(err);
-                Swal.fire('Error', 'No se pudo crear la carpeta.', 'error');
+                console.error("Error al crear carpeta:", err);
+                Swal.fire('Error', 'No se pudo contactar con el servidor de Drive.', 'error');
             });
         }
     };
