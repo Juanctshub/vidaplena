@@ -1680,7 +1680,7 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     });
 
     // Google Drive Config Global
-    const GD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwg9xEgl9ivrBqhDKuMyHnKL8vQlTRf4fQp_rl3v5ZZ1G44gxKY8gM17l6mbDHqac4/exec";
+    const GD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxg6dONy8bnLU7a6MaAjf22AwbWF10OsL_bDJvVRQ1hqTGJZS0eHg4c8y_QRfu50oU5/exec";
     const GD_FOLDER_ID = "1yW0LcMfoGrdT7sbrnrEz6J_McqDXzbKk";
 
     window.uploadLibraryFile = function(input) {
