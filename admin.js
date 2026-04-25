@@ -15,19 +15,13 @@
     function revealDashboard() {
         updateLoader(100, '¡Bienvenido!');
         const loader = document.getElementById('apple-loader');
-        const body = document.body;
         setTimeout(() => {
             if (loader) {
                 loader.style.opacity = '0';
                 loader.style.visibility = 'hidden';
                 setTimeout(() => {
                     loader.remove();
-                    body.classList.add('auth-ready');
-                    body.style.opacity = '1';
                 }, 800);
-            } else {
-                body.style.opacity = '1';
-                body.classList.add('auth-ready');
             }
         }, 500);
     }
