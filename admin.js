@@ -1681,7 +1681,10 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
 
     // Google Drive Config Global
     const GD_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxg6dONy8bnLU7a6MaAjf22AwbWF10OsL_bDJvVRQ1hqTGJZS0eHg4c8y_QRfu50oU5/exec";
-    const GD_FOLDER_ID = "1yW0LcMfoGrdT7sbrnrEz6J_McqDXzbKk";
+    const GD_ROOT_FOLDER_ID = "1yW0LcMfoGrdT7sbrnrEz6J_McqDXzbKk";
+    let currentFolderId = GD_ROOT_FOLDER_ID;
+    let parentFolderId = null;
+    let currentFolderName = "Biblioteca Principal";
 
     window.uploadLibraryFile = function(input) {
         if(!input.files.length) return;
@@ -1701,7 +1704,7 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
                 base64: base64,
                 type: file.type,
                 name: file.name,
-                folderId: GD_FOLDER_ID
+                folderId: currentFolderId
             };
 
             bar.style.width = '50%';
@@ -1736,37 +1739,84 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
         };
     };
 
-    window.syncGoogleDrive = async function() {
+    window.syncGoogleDrive = async function(folderId = currentFolderId) {
         const syncBtn = document.querySelector('button[onclick="syncGoogleDrive()"]');
         const originalHTML = syncBtn.innerHTML;
-        syncBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Sincronizando...';
+        syncBtn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Cargando...';
         lucide.createIcons();
         syncBtn.disabled = true;
 
-        Swal.fire({
-            title: 'Sincronizando Drive...',
-            html: 'Buscando carpetas y archivos recientes.',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading() }
-        });
+        currentFolderId = folderId;
 
         try {
-            const response = await fetch(GD_SCRIPT_URL + "?action=list");
-            const files = await response.json();
-            console.log("Archivos de Drive recibidos:", files);
+            const response = await fetch(`${GD_SCRIPT_URL}?action=list&folderId=${folderId}`);
+            const data = await response.json();
             
-            window.googleDriveFiles = files;
+            if (data.error) throw new Error(data.error);
+
+            window.googleDriveFiles = data.files;
+            currentFolderName = data.currentFolderName;
+            parentFolderId = data.parentFolder ? data.parentFolder.id : null;
+            
             renderLibrary();
-            Swal.close();
-            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Drive Sincronizado', showConfirmButton: false, timer: 1500 });
         } catch (err) {
             console.error(err);
-            Swal.fire('Atención', 'Para sincronizar archivos existentes, asegúrate de haber actualizado el Script de Google con la función "doGet" que te proporcionó Pedro.', 'warning');
+            Swal.fire('Error', 'No se pudo sincronizar con Drive.', 'error');
         } finally {
             syncBtn.innerHTML = originalHTML;
             syncBtn.disabled = false;
             lucide.createIcons();
         }
+    };
+
+    window.openFolder = function(id) {
+        window.syncGoogleDrive(id);
+    };
+
+    window.goBack = function() {
+        if (parentFolderId) {
+            window.syncGoogleDrive(parentFolderId);
+        } else {
+            window.syncGoogleDrive(GD_ROOT_FOLDER_ID);
+        }
+    };
+
+    // Drag & Drop Handlers
+    window.handleDragStart = function(e, id) {
+        e.dataTransfer.setData("itemId", id);
+    };
+
+    window.handleDragOver = function(e) {
+        e.preventDefault();
+        e.currentTarget.classList.add('bg-indigo-500/10');
+    };
+
+    window.handleDragLeave = function(e) {
+        e.currentTarget.classList.remove('bg-indigo-500/10');
+    };
+
+    window.handleDrop = function(e, targetFolderId) {
+        e.preventDefault();
+        e.currentTarget.classList.remove('bg-indigo-500/10');
+        const itemId = e.dataTransfer.getData("itemId");
+        
+        if (itemId === targetFolderId) return;
+
+        Swal.fire({
+            title: 'Moviendo...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading() }
+        });
+
+        fetch(GD_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'move', itemId: itemId, targetFolderId: targetFolderId })
+        }).then(() => {
+            Swal.close();
+            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Elemento movido', showConfirmButton: false, timer: 1500 });
+            syncGoogleDrive();
+        });
     };
 
     window.deleteLibraryFile = function(lid, gDriveId) {
@@ -1856,7 +1906,7 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
             fetch(GD_SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: JSON.stringify({ action: 'createFolder', name: folderName, parentId: GD_FOLDER_ID })
+                body: JSON.stringify({ action: 'createFolder', name: folderName, parentId: currentFolderId })
             }).then(() => {
                 Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Carpeta enviada a Drive', showConfirmButton: false, timer: 2000 });
                 // Wait 2 seconds before syncing to give Drive time to reflect the new folder
@@ -1919,10 +1969,21 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
 
     function renderLibrary() {
         const container = document.getElementById('libraryList');
+        const breadcrumb = document.getElementById('libraryBreadcrumb');
         if(!container) return;
         
-        // Combine Firestore files and Google Drive Synced files
-        const combined = [...localLibrary];
+        if (breadcrumb) {
+            breadcrumb.innerHTML = `
+                <div class="flex items-center gap-2 mb-4 bg-white/5 p-2 rounded-xl border border-white/5">
+                    ${currentFolderId !== GD_ROOT_FOLDER_ID ? `<button onclick="goBack()" class="p-1.5 hover:bg-white/10 rounded-lg text-slate-400 transition-colors"><i data-lucide="arrow-left" class="w-4 h-4"></i></button>` : `<i data-lucide="folder" class="w-4 h-4 text-slate-500 ml-1"></i>`}
+                    <span class="text-xs font-bold text-slate-200 truncate">${currentFolderName}</span>
+                </div>
+            `;
+        }
+
+        // Combine Firestore files (only if in root or specifically tagged?)
+        // For simplicity, Firestore files only show in Root for now
+        const combined = currentFolderId === GD_ROOT_FOLDER_ID ? [...localLibrary] : [];
         
         // Add GD Synced files if not already in localLibrary
         window.googleDriveFiles.forEach(gdf => {
@@ -1983,14 +2044,19 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
             }
             
             return `
-            <tr class="hover:bg-white/5 transition-all border-b border-white/5 last:border-0 group">
+            <tr class="hover:bg-white/5 transition-all border-b border-white/5 last:border-0 group" 
+                draggable="true" ondragstart="handleDragStart(event, '${f.lid || f.gDriveId}')"
+                ${isFolder ? `ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event, '${f.lid || f.gDriveId}')"` : ''}>
                 <td class="py-4 px-4 font-medium text-white">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-slate-800/80 flex items-center justify-center ${iconColor} border border-white/5 shadow-inner">
                             <i data-lucide="${icon}" class="w-5 h-5"></i>
                         </div>
                         <div class="truncate max-w-[200px] md:max-w-md">
-                            <a href="${f.url}" target="_blank" class="font-bold text-slate-200 hover:text-indigo-400 transition-colors block truncate">${f.name}</a>
+                            ${isFolder ? 
+                                `<button onclick="openFolder('${f.lid || f.gDriveId}')" class="font-bold text-slate-200 hover:text-indigo-400 transition-colors block truncate text-left">${f.name}</button>` :
+                                `<a href="${f.url}" target="_blank" class="font-bold text-slate-200 hover:text-indigo-400 transition-colors block truncate">${f.name}</a>`
+                            }
                             <div class="flex items-center gap-2 mt-0.5">
                                 ${isFolder ? '<span class="text-[9px] bg-yellow-500/20 text-yellow-500 px-1.5 py-0.5 rounded-md font-black uppercase tracking-tighter">Carpeta</span>' : ''}
                                 <span class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">${sizeStr}</span>
