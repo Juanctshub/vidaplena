@@ -58,15 +58,19 @@
 
         figure.origami-loader {
             position: relative;
-            width: 0; height: 100px; /* Give it some explicit height */
+            width: 116px; height: 100px;
             transform-style: preserve-3d;
             perspective: 600px;
-            margin-bottom: 150px; 
+            margin-bottom: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         figure.origami-loader span {
             display: block;
             position: absolute;
+            left: 0; top: 0;
             transform-origin: 50% 100%;
         }
 
