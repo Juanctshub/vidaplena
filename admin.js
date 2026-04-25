@@ -4,27 +4,36 @@
     // ===== INIT LUCIDE ICONS =====
     lucide.createIcons();
 
-    // ===== APPLE LOADER SEQUENCE & REVEAL =====
-    function revealDashboard() {
-        const loader = document.getElementById('apple-loader');
-        const body = document.body;
-        if (loader) {
-            loader.style.opacity = '0';
-            setTimeout(() => {
-                loader.remove();
-                body.classList.add('auth-ready');
-                body.style.opacity = '1';
-            }, 1000);
-        } else {
-            body.style.opacity = '1';
-            body.classList.add('auth-ready');
-        }
+    // ===== PREMIUM LOADER LOGIC =====
+    function updateLoader(pct, text) {
+        const bar = document.getElementById('loader-bar');
+        const txt = document.getElementById('loader-text');
+        if (bar) bar.style.width = pct + '%';
+        if (txt) txt.textContent = text;
     }
 
-    // Auto-reveal after the animation finishes (faster reveal for better UX)
-    setTimeout(revealDashboard, 1500);
+    function revealDashboard() {
+        updateLoader(100, '¡Bienvenido!');
+        const loader = document.getElementById('apple-loader');
+        const body = document.body;
+        setTimeout(() => {
+            if (loader) {
+                loader.style.opacity = '0';
+                loader.style.visibility = 'hidden';
+                setTimeout(() => {
+                    loader.remove();
+                    body.classList.add('auth-ready');
+                    body.style.opacity = '1';
+                }, 800);
+            } else {
+                body.style.opacity = '1';
+                body.classList.add('auth-ready');
+            }
+        }, 500);
+    }
 
-    // ===== AUTH & ROLES CHECK =====
+    // Phase 1: Security
+    updateLoader(15, 'Verificando seguridad...');
     const session = JSON.parse(localStorage.getItem('adminSession'));
     if (!session || !session.loggedIn) {
         window.location.replace('index.html');
@@ -37,7 +46,7 @@
     if (currentRole === 'Super Admin') currentRole = 'Pastor';
     const roleDisplay = document.getElementById('roleDisplay');
     if (roleDisplay) roleDisplay.textContent = currentRole;
-
+    updateLoader(30, `Cargando perfil de ${currentRole}...`);
     applyRoleRestrictions(currentRole);
 
     function applyRoleRestrictions(role) {
@@ -67,6 +76,7 @@
     let currentCalendarDate = new Date();
     
     // Initial sync
+    updateLoader(50, 'Sincronizando censo ministerial...');
     dbFirestore.collection('miembros').onSnapshot((snapshot) => {
         window.localDB = [];
         snapshot.forEach(doc => {
@@ -2165,6 +2175,10 @@ ESTRICTO: REGLA DE ORO: Tus respuestas deben ser ULTRA-CONCISAS, DIRECTAS y EJEC
     }
 
     // Run Initial Renders
+    updateLoader(90, 'Construyendo Dashboard...');
     renderDashboard();
+    
+    // Final reveal
+    setTimeout(revealDashboard, 1000);
     
 })();

@@ -49,51 +49,31 @@
 
         /* Premium Modern Loader */
         #apple-loader {
-            position: fixed;
-            inset: 0;
-            background: #0B1120;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: fixed; inset: 0; background: #0B1120; z-index: 9999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
         }
-
-        .loader-pulse {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-            border-radius: 24px;
-            animation: pulse-ring 1.5s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 40px rgba(59, 130, 246, 0.4);
+        .loader-content { text-align: center; display: flex; flex-direction: column; align-items: center; position: relative; }
+        .loader-main { position: relative; width: 120px; height: 120px; margin-bottom: 40px; }
+        .loader-ring {
+            position: absolute; inset: -10px; border: 2px solid rgba(59, 130, 246, 0.1);
+            border-top-color: #3b82f6; border-radius: 50%; animation: spin 2s linear infinite;
         }
-
-        @keyframes pulse-ring {
-            0% { transform: scale(0.8); opacity: 0.5; }
-            50% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.8); opacity: 0.5; }
+        .loader-logo {
+            width: 100%; height: 100%; background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: 32px; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3); animation: breathe 3s ease-in-out infinite;
         }
-
-        .loader-text {
-            margin-top: 24px;
-            font-weight: 800;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            font-size: 14px;
-            background: linear-gradient(to right, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: text-shimmer 2s infinite;
-        }
-
-        @keyframes text-shimmer {
-            0% { opacity: 0.3; }
-            50% { opacity: 1; }
-            100% { opacity: 0.3; }
+        .loader-logo i { color: white; width: 50px; height: 50px; }
+        .loader-status { margin-top: 20px; }
+        .loader-title { font-size: 1.5rem; font-weight: 800; color: white; margin-bottom: 8px; letter-spacing: -0.025em; }
+        .loader-subtitle { font-size: 0.875rem; color: #94a3b8; font-weight: 500; min-height: 1.25rem; }
+        .loader-progress-bg { width: 240px; height: 4px; background: rgba(255, 255, 255, 0.05); border-radius: 2px; margin-top: 24px; overflow: hidden; }
+        .loader-progress-bar { width: 0%; height: 100%; background: linear-gradient(to right, #3b82f6, #8b5cf6); transition: width 0.4s ease; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3); }
+            50% { transform: scale(1.05); box-shadow: 0 30px 60px rgba(59, 130, 246, 0.5); }
         }
 
         /* Vida Plena Tabler Fusion Aesthetic */
@@ -193,12 +173,23 @@
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <!-- Modern Loader -->
+    <!-- Premium Modern Loader -->
     <div id="apple-loader">
-        <div class="loader-pulse">
-            <img src="logo.png" class="w-10 h-10" style="filter: brightness(0) invert(1);">
+        <div class="loader-content">
+            <div class="loader-main">
+                <div class="loader-ring"></div>
+                <div class="loader-logo">
+                    <i data-lucide="shield-check" class="w-12 h-12 text-white"></i>
+                </div>
+            </div>
+            <div class="loader-status">
+                <h1 class="loader-title">Vida Plena</h1>
+                <p class="loader-subtitle" id="loader-text">Inicializando ecosistema pastoral...</p>
+            </div>
+            <div class="loader-progress-bg">
+                <div class="loader-progress-bar" id="loader-bar"></div>
+            </div>
         </div>
-        <div class="loader-text">Vida Plena</div>
     </div>
 
     <!-- Floating Top Header (Brand & User) -->
